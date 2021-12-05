@@ -114,22 +114,27 @@ void img_roll_ud(struct st_img *img)
         }
 }
 
-int img_check(struct st_img *img1,struct st_img *img2)
+struct st_point img_check(struct st_img *img_back,struct st_img *img_icon,int img_icon_x,int img_icon_y)
 {
-    int h_min,w_min,i,j;
-    h_min = img1->h < img2->h ? img1->h : img2->h;
-    w_min = img1->w < img2->w ? img1->w : img2->w;
+    int i,j;
+    struct st_point point_overlap = {-1,-1};
 
-    for(j=0;j<h_min;j++)
-        for(i=0;i<w_min;i++)
+    for(j=0;j<img_icon->h;j++)
+        for(i=0;i<img_icon->w;i++)
         {
-            if( IMG_GET_PIXEL(img1,i,j)!=IMG_CHAR_NONE
-                && IMG_GET_PIXEL(img2,i,j)!=IMG_CHAR_NONE)
+            if(IMG_GET_PIXEL(img_icon,i,j) != IMG_CHAR_NONE)
             {
-                return cTRUE;
+                if(IMG_GET_PIXEL(img_back,i+img_icon_x,j+img_icon_y)!= IMG_CHAR_NONE)
+                {
+                    point_overlap.x = i+img_icon_x;
+                    point_overlap.y = j+img_icon_y;
+
+                    return point_overlap;
+                }
             }
         }
-    return cFALSE;
+
+    return point_overlap;
 }
 
 int img_copy(struct st_img *img_src,struct st_img *img_dst)
@@ -196,7 +201,30 @@ void img_erase(struct st_img *img_back,struct st_img *img_icon,int x,int y)
 void main()
 {
     int x=0,y=0;
-    char back_buffer[20][80];
+    char screen_buffer[20][80];
+
+    char back_buffer[20][80]={
+    "                                       **                                       ",
+    "                                                                                ",
+    "                                                                                ",
+    "                                                                                ",
+    "                                        0000                                    ",
+    "                                                                                ",
+    "                                         9999                                   ",
+    "                                                                                ",
+    "                                                                                ",
+    "                                                                                ",
+    "                                                  444                           ",
+    "                                                                                ",
+    "                                                                                ",
+    "                                                                                ",
+    "                                                                                ",
+    "                                                                                ",
+    "                                    |||||||                                     ",
+    "                                                                                ",
+    "                                                                                ",
+    "                                                                                ",
+    };
 
 
     char none_buffer[6][10] = {
@@ -215,23 +243,21 @@ void main()
     "+--------+"};
 
     char drum_buffer[6][10] = {
-    "+--------+",
-    "|    ||  |",
-    "| ----   |",
-    "||0000|  |",
-    "| ----   |",
-    "+--------+"};
+    "          ",
+    "          ",
+    "    +     ",
+    "  +++++   ",
+    "    +     ",
+    "          "};
 
     struct st_img img_back = {20,80,&back_buffer};
-    struct st_img img_icon = {6,10,&none_buffer};
-
+    struct st_img img_icon = {6,10,&drum_buffer};
+    struct st_img img_screen = {20,80,&screen_buffer}; //back层和icon层叠加起来的效果
 
     ui_init();
     while(1)
     {
-
-        img_fill(&img_back,' ');
-
+        img_fill(&img_screen, ' ');
         if(ui_key_is_pressed('A'))
         {
             x--;
@@ -273,7 +299,24 @@ void main()
         {
             img_roll_ud(&img_icon);
         }
-        img_write(&img_back, &img_icon, x, y);
-        img_print(&img_back);
+
+         //if(ui_key_is_pressed('C'))
+        {
+            struct st_point point = img_check(&img_back,&img_icon,x,y);
+            if(point.x == -1 && point.y == -1)
+            {
+                printf("                                     ");
+            }
+            else
+            {
+                printf("overlap: x = %d y = %d",point.x,point.y);
+            }
+        }
+
+        img_write(&img_screen, &img_back, 0, 0);
+        img_write(&img_screen, &img_icon, x, y);
+
+
+        img_print(&img_screen);
     }
 }

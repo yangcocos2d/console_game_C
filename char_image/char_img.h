@@ -8,4 +8,10 @@ struct st_img
     char *buffer;
 };
 
+struct st_point
+{
+    int x;
+    int y;
+};
+
 #endif
