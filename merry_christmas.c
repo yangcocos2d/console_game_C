@@ -19,17 +19,32 @@ void main()
 	int diff = 0;
 	int direction = 0;
 	char screen_buffer[40][80];
-	char icon_buffer[3][5] = {
+	char icon_buffer_1[3][5] = {
 		"  +  ",
 		"+++++",
 		"  +  ",
+	};
+	char icon_buffer_2[3][5] = {
+		"  #  ",
+		"#####",
+		"  #  ",
+	};
+	char icon_buffer_3[3][5] = {
+		"  *  ",
+		"*****",
+		"  *  ",
+	};
+	char icon_buffer_4[3][5] = {
+		"  -  ",
+		"-----",
+		"  -  ",
 	};
 	char target_buffer[3][5] = {
 		".....",
 		".....",
 		".....",
 	};
-	struct st_img img_icon = { 3, 5, &icon_buffer };
+	struct st_img img_icon = { 3, 5, &icon_buffer_1 };
 	struct st_img img_target = { 3, 5, &target_buffer };
 	struct st_img img_screen = { 40, 80, &screen_buffer };
 
@@ -45,61 +60,62 @@ void main()
 	};
 	struct st_spirit spirit_target[NUM_TARGET] =
 	{	
-		{ &img_target, 40, 0 },//4
+		{ &img_target, 40, 0 },
 		{ &img_target, 40, 0 },
 		{ &img_target, 40, 0 },
 		
-		{ &img_target, 35, 3 },//4
+		{ &img_target, 35, 3 },
 		{ &img_target, 35, 3 },
 		{ &img_target, 45, 3 },
 
-		{ &img_target, 30, 6 },//5
+		{ &img_target, 30, 6 },
 		{ &img_target, 40, 6 },
 		{ &img_target, 50, 6 },
 		
-		{ &img_target, 40, 9 },//1
+		{ &img_target, 40, 9 },
 		{ &img_target, 40, 9 },
 		{ &img_target, 40, 9 },
 
-		{ &img_target, 30, 12 },//2
+		{ &img_target, 30, 12 },
 		{ &img_target, 30, 12 },
 		{ &img_target, 50, 12 },
 
-		{ &img_target, 20, 15 },//3
+		{ &img_target, 20, 15 },
 		{ &img_target, 40, 15 },
 		{ &img_target, 60, 15 },
 
-		{ &img_target, 40, 18 },//6
+		{ &img_target, 40, 18 },
 		{ &img_target, 40, 18 },
 		{ &img_target, 40, 18 },
 
-		{ &img_target, 30, 21},//6
-		{ &img_target, 40, 21 },
+		{ &img_target, 30, 21},
+		{ &img_target, 40, 21},
 		{ &img_target, 50, 21},
 
-		{ &img_target, 20, 24 },//6
+		{ &img_target, 20, 24 },
 		{ &img_target, 40, 24 },
 		{ &img_target, 60, 24 },
 
-
-
-		{ &img_target, 10, 27 },//6
-		{ &img_target, 20, 27 },//6
-		{ &img_target, 30, 27 },//6
+		{ &img_target, 10, 27 },
+		{ &img_target, 20, 27 },
+		{ &img_target, 30, 27 },
 		{ &img_target, 40, 27 },
-		{ &img_target, 50, 27 },//6
+		{ &img_target, 50, 27 },
 		{ &img_target, 60, 27 },
-		{ &img_target, 70, 27 },//6
+		{ &img_target, 70, 27 },
 
 		{ &img_target, 40, 30 },
-		{ &img_target, 40, 33 },//6
+		{ &img_target, 40, 33 },
 		{ &img_target, 40, 36 },
-		{ &img_target, 40, 39 },//6
+		{ &img_target, 40, 39 },
 
 	};
 
 	struct st_spirit *spirit_move;
 	struct st_spirit *spirit_des;
+
+
+	srand(time(0));
 
 	for (int i = 0; i < NUM_TARGET; i++)
 	{
@@ -113,32 +129,49 @@ void main()
 			}
 			
 		}
-		
+
 	}
 
-	srand(time(0));
+	
 	ui_init();
 	img_fill(&img_screen, ' ');
 	
 	while (1)
 	{
 		counter++;
-		if (counter > 10000000)
+		//if (counter > 1)
 		{
 			counter = 0;
 			for (int j = 0; j < NUM_TARGET; j++)
 			{
-
 				spirit_des = &spirit_target[j];
 				
-			 
-
 				for (int i = 0; i < NUM_SPIRIT; i++)
 				{
 					int p_x = 0;
 					int p_y = 0;
+					int icon_change = rand() % 5;
 
 					spirit_move = &spirit_icon[j][i];
+
+					///ÇĞ»»Í¼±ê
+					if (icon_change == 1)
+					{
+						spirit_move->img_icon->buffer = icon_buffer_1;
+					}
+					if (icon_change == 2)
+					{
+						spirit_move->img_icon->buffer = icon_buffer_2;
+					}
+					if (icon_change == 3)
+					{
+						spirit_move->img_icon->buffer = icon_buffer_3;
+					}
+					if (icon_change == 4)
+					{
+						spirit_move->img_icon->buffer = icon_buffer_4;
+					}
+					 
 
 					steps = rand() % 2;
 					diff = abs(spirit_des->x - spirit_move->x) + abs(spirit_des->y - spirit_move->y);
