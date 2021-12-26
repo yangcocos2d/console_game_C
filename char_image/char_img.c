@@ -198,9 +198,60 @@ void img_erase(struct st_img *img_back,struct st_img *img_icon,int x,int y)
         }
 }
 
+void animation_init(struct st_animation *p_animation)
+{
+    p_animation->img_num = 0;
+}
+
+void animation_reset(struct st_animation *p_animation)
+{
+    p_animation->img_cur = 0;
+}
+
+void animation_add(struct st_animation *p_animation,struct st_img *p_img)
+{
+    if(p_animation->img_num < ANIMATION_MAX_IMG)
+    {
+        p_animation->pimg[p_animation->img_num] = p_img;
+        p_animation->img_num++;
+    }
+}
+
+struct st_img *animation_next(struct st_animation *p_animation)
+{
+    struct st_img *ret = 0;
+
+    if(p_animation->img_num == 0)
+    {
+        return 0;
+    }
+
+    if(p_animation->img_cur < p_animation->img_num)
+    {
+        ret = p_animation->pimg[p_animation->img_cur];
+        p_animation->img_cur++;
+        return ret;
+    }
+    else
+    {
+        p_animation->img_cur = 1;
+
+        return p_animation->pimg[0];
+    }
+}
+
+void animation_setcur(struct st_animation *p_animation,int img_cur)
+{
+    if(img_cur < p_animation->img_num)
+    {
+        p_animation->img_cur = img_cur;
+    }
+}
+
 void main()
 {
     int x=0,y=0;
+    int i = 0;
     char screen_buffer[20][80];
 
     char back_buffer[20][80]={
@@ -254,6 +305,103 @@ void main()
     struct st_img img_icon = {6,10,&drum_buffer};
     struct st_img img_screen = {20,80,&screen_buffer}; //back层和icon层叠加起来的效果
 
+
+    //测试动画
+    char ani_img_1[6][10] = {
+    "          ",
+    "          ",
+    "          ",
+    "          ",
+    "          ",
+    "          "};
+    char ani_img_2[6][10] = {
+    "          ",
+    "          ",
+    "          ",
+    "    +     ",
+    "          ",
+    "          "};
+    char ani_img_3[6][10] = {
+    "          ",
+    "          ",
+    "    +     ",
+    "    +     ",
+    "    +     ",
+    "          "};
+    char ani_img_4[6][10] = {
+    "          ",
+    "          ",
+    "    +     ",
+    "   +++    ",
+    "    +     ",
+    "          "};
+    char ani_img_5[6][10] = {
+    "          ",
+    "          ",
+    "    +     ",
+    "  +++++   ",
+    "    +     ",
+    "          "};
+    char ani_img_6[6][10] = {
+    "          ",
+    "    +     ",
+    "    +     ",
+    "  +++++   ",
+    "    +     ",
+    "    +     "};
+    char ani_img_7[6][10] = {
+    "          ",
+    "    +     ",
+    "    +     ",
+    " +++++++  ",
+    "    +     ",
+    "    +     "};
+    char ani_img_8[6][10] = {
+    "          ",
+    "    +     ",
+    "    +     ",
+    "++++ ++++ ",
+    "    +     ",
+    "    +     "};
+    char ani_img_9[6][10] = {
+    "          ",
+    "    +     ",
+    "  + + +   ",
+    " ++   ++  ",
+    "  + + +   ",
+    "    +     "};
+    char ani_img_10[6][10] = {
+    "          ",
+    "    +     ",
+    "  +   +   ",
+    " +     +  ",
+    "  +   +   ",
+    "    +     "};
+
+    struct st_animation ani_test ;
+
+    struct st_img img_ani[10] =
+    {
+    {6,10,&ani_img_1},
+    {6,10,&ani_img_2},
+    {6,10,&ani_img_3},
+    {6,10,&ani_img_4},
+    {6,10,&ani_img_5},
+    {6,10,&ani_img_6},
+    {6,10,&ani_img_7},
+    {6,10,&ani_img_8},
+    {6,10,&ani_img_9},
+    {6,10,&ani_img_10},
+    };
+
+    animation_init(&ani_test);
+    animation_reset(&ani_test);
+
+    for(i=0;i<10;i++)
+    {
+        animation_add(&ani_test,&img_ani[i]);
+    }
+
     ui_init();
     while(1)
     {
@@ -291,6 +439,10 @@ void main()
             }
         }
 
+        if(ui_key_is_pressed('M'))
+        {   //test animation
+            img_icon = *animation_next(&ani_test);
+        }
         if(ui_key_is_pressed('L'))
         {
             img_roll_lr(&img_icon);
