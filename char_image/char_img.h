@@ -22,4 +22,19 @@ struct st_point
     int y;
 };
 
+struct st_spirit
+{
+    struct st_point pos;
+    struct st_animation animation;
+    void *user_data;
+};
+
+struct st_pocket
+{
+    void *pocket_start;
+    void *pocket_end;
+    void *pocket_curr;
+    int   size_cell;
+};
+
 #endif

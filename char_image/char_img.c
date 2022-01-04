@@ -248,9 +248,69 @@ void animation_setcur(struct st_animation *p_animation,int img_cur)
     }
 }
 
+void pocket_init(struct st_pocket *pocket,void * start,void *end,int size_cell)
+{
+    pocket->pocket_start = start;
+    pocket->pocket_end = end;
+    pocket->pocket_curr = start;
+    pocket->size_cell = size_cell;
+
+}
+void * pocket_getcur(struct st_pocket *pocket)
+{
+    char *pcur = pocket->pocket_curr;
+    pocket->pocket_curr = pcur + pocket->size_cell;
+    if(pocket->pocket_curr > pocket->pocket_end)
+    {
+        pocket->pocket_curr = pocket->pocket_start;
+    }
+    return (void *)pcur;
+}
+
+int pocket_num(struct st_pocket *pocket)
+{
+    int num = 0;
+    num =  ((int)pocket->pocket_end - (int)pocket->pocket_start) / pocket->size_cell;
+
+    return num + 1;
+}
+
+void pocket_foreach(struct st_pocket *pocket,void(*pfun)(void *p,void *argv),void *argv)
+{
+    void *p;
+    int i;
+    int loop = pocket_num(pocket);
+
+    for(i = 0;i < loop;i++)
+    {
+        p = pocket_getcur(pocket);
+        pfun(p,argv);
+    }
+}
+
+void spirit_move(struct st_spirit *p,void *argv)
+{
+    char *param = argv;
+    if(param[0] == 'A')
+    {
+        p->pos.x--;
+    }
+    if(param[0] == 'D')
+    {
+        p->pos.x++;
+    }
+    if(param[0] == 'W')
+    {
+        p->pos.y--;
+    }
+    if(param[0] == 'S')
+    {
+        p->pos.y++;
+    }
+}
+
 void main()
 {
-    int x=0,y=0;
     int i = 0;
     char screen_buffer[20][80];
 
@@ -311,7 +371,7 @@ void main()
     "          ",
     "          ",
     "          ",
-    "          ",
+    "    .     ",
     "          ",
     "          "};
     char ani_img_2[6][10] = {
@@ -394,12 +454,25 @@ void main()
     {6,10,&ani_img_10},
     };
 
+    struct st_pocket pocket;
+    struct st_spirit spirit_array[10];
+
     animation_init(&ani_test);
     animation_reset(&ani_test);
+
+    pocket_init(&pocket, &spirit_array[0], &spirit_array[9],sizeof(struct st_spirit));
 
     for(i=0;i<10;i++)
     {
         animation_add(&ani_test,&img_ani[i]);
+    }
+
+    for(i=0;i<10;i++)
+    {
+        spirit_array[i].animation = ani_test;
+        spirit_array[i].pos.x = i*5 % 80;
+        spirit_array[i].pos.y = i*5 % 20;
+        animation_setcur(& spirit_array[i].animation,i);
     }
 
     ui_init();
@@ -408,19 +481,19 @@ void main()
         img_fill(&img_screen, ' ');
         if(ui_key_is_pressed('A'))
         {
-            x--;
+            pocket_foreach(&pocket,spirit_move,"A");
         }
         if(ui_key_is_pressed('D'))
         {
-            x++;
+            pocket_foreach(&pocket,spirit_move,"D");
         }
         if(ui_key_is_pressed('W'))
         {
-            y--;
+            pocket_foreach(&pocket,spirit_move,"W");
         }
         if(ui_key_is_pressed('S'))
         {
-            y++;
+            pocket_foreach(&pocket,spirit_move,"S");
         }
 
         if(ui_key_is_pressed('E'))
@@ -440,9 +513,20 @@ void main()
         }
 
         if(ui_key_is_pressed('M'))
-        {   //test animation
-            img_icon = *animation_next(&ani_test);
+        {
+            struct st_spirit *pspirit;
+            int i;
+            int loop = pocket_num(&pocket);
+
+            for(i = 0;i < loop;i++)
+            {
+                pspirit = pocket_getcur(&pocket);
+                img_icon =*animation_next(&pspirit->animation);
+                img_write(&img_screen, &img_icon, pspirit->pos.x,pspirit->pos.y);
+            }
+
         }
+
         if(ui_key_is_pressed('L'))
         {
             img_roll_lr(&img_icon);
@@ -452,21 +536,12 @@ void main()
             img_roll_ud(&img_icon);
         }
 
-         //if(ui_key_is_pressed('C'))
+         if(ui_key_is_pressed('C'))
         {
-            struct st_point point = img_check(&img_back,&img_icon,x,y);
-            if(point.x == -1 && point.y == -1)
-            {
-                printf("                                     ");
-            }
-            else
-            {
-                printf("overlap: x = %d y = %d",point.x,point.y);
-            }
+
         }
 
         img_write(&img_screen, &img_back, 0, 0);
-        img_write(&img_screen, &img_icon, x, y);
 
 
         img_print(&img_screen);
