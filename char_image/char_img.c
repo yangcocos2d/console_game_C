@@ -37,6 +37,7 @@ y,h,j
 */
 
 static HANDLE handle;
+
 void ui_init()
 {
     CONSOLE_CURSOR_INFO cinfo;
@@ -53,6 +54,7 @@ void ui_set_xy(short x, short y)
     COORD coord = { x,y };
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE),coord);
 }
+
 //------------------------------------------------------------------------
 #define IMG_GET_PIXEL(img,i,j)  (*(img->buffer + (j)*(img->w) +(i)))
 #define IMG_CHAR_NONE           (' ')
@@ -198,14 +200,15 @@ void img_erase(struct st_img *img_back,struct st_img *img_icon,int x,int y)
         }
 }
 
-void animation_init(struct st_animation *p_animation)
-{
-    p_animation->img_num = 0;
-}
-
 void animation_reset(struct st_animation *p_animation)
 {
     p_animation->img_cur = 0;
+}
+
+void animation_init(struct st_animation *p_animation)
+{
+    p_animation->img_num = 0;
+    animation_reset(p_animation);
 }
 
 void animation_add(struct st_animation *p_animation,struct st_img *p_img)
@@ -217,7 +220,15 @@ void animation_add(struct st_animation *p_animation,struct st_img *p_img)
     }
 }
 
-struct st_img *animation_next(struct st_animation *p_animation)
+void animation_setcur(struct st_animation *p_animation,int img_cur)
+{
+    if(img_cur < p_animation->img_num)
+    {
+        p_animation->img_cur = img_cur;
+    }
+}
+
+struct st_img *animation_getcur(struct st_animation *p_animation)
 {
     struct st_img *ret = 0;
 
@@ -229,23 +240,24 @@ struct st_img *animation_next(struct st_animation *p_animation)
     if(p_animation->img_cur < p_animation->img_num)
     {
         ret = p_animation->pimg[p_animation->img_cur];
-        p_animation->img_cur++;
         return ret;
     }
     else
     {
-        p_animation->img_cur = 1;
+        p_animation->img_cur = 0;
 
         return p_animation->pimg[0];
     }
 }
 
-void animation_setcur(struct st_animation *p_animation,int img_cur)
+struct st_img *animation_next(struct st_animation *p_animation)
 {
-    if(img_cur < p_animation->img_num)
-    {
-        p_animation->img_cur = img_cur;
-    }
+    struct st_img *ret = 0;
+
+    ret = animation_getcur(p_animation);
+    p_animation->img_cur++;
+
+    return ret;
 }
 
 void pocket_init(struct st_pocket *pocket,void * start,void *end,int size_cell)
@@ -256,6 +268,7 @@ void pocket_init(struct st_pocket *pocket,void * start,void *end,int size_cell)
     pocket->size_cell = size_cell;
 
 }
+
 void * pocket_getcur(struct st_pocket *pocket)
 {
     char *pcur = pocket->pocket_curr;
@@ -275,7 +288,7 @@ int pocket_num(struct st_pocket *pocket)
     return num + 1;
 }
 
-void pocket_foreach(struct st_pocket *pocket,void(*pfun)(void *p,void *argv),void *argv)
+void pocket_foreach(struct st_pocket *pocket,void(*pfun)(void *p,int index,void *argv),void *argv)
 {
     void *p;
     int i;
@@ -284,10 +297,11 @@ void pocket_foreach(struct st_pocket *pocket,void(*pfun)(void *p,void *argv),voi
     for(i = 0;i < loop;i++)
     {
         p = pocket_getcur(pocket);
-        pfun(p,argv);
+        pfun(p,i,argv);
     }
 }
 
+/*
 void spirit_move(struct st_spirit *p,void *argv)
 {
     char *param = argv;
@@ -547,3 +561,4 @@ void main()
         img_print(&img_screen);
     }
 }
+*/
